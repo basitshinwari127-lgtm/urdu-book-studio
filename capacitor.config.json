@@ -1,0 +1,6 @@
+{
+  "appId": "com.urdubookstudio.app",
+  "appName": "Urdu Book Studio",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
