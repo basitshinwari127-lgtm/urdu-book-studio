@@ -1,0 +1,9 @@
+{
+  "name": "urdu-book-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Urdu Book Studio Android app",
+  "scripts": {"build": "echo Static app ready", "android:add": "cap add android", "android:sync": "cap sync android"},
+  "dependencies": {"@capacitor/android": "^7.4.3", "@capacitor/core": "^7.4.3"},
+  "devDependencies": {"@capacitor/cli": "^7.4.3"}
+}
