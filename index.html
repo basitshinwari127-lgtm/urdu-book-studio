@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#173b35">
+<title>اردو کتاب ساز</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{--green:#173b35;--gold:#c49a45;--paper:#fffdf8;--ink:#242424}
+*{box-sizing:border-box}body{margin:0;background:#eef1ef;color:var(--ink);font-family:Arial,sans-serif}
+header{background:var(--green);color:white;padding:14px 16px;position:sticky;top:0;z-index:5}
+header h1{font-size:20px;margin:0 0 4px}header small{opacity:.8}
+.toolbar{display:flex;gap:7px;flex-wrap:wrap;padding:10px;background:#fff;position:sticky;top:67px;z-index:4;box-shadow:0 2px 6px #0001}
+button,select,input{font:inherit}button{border:0;border-radius:8px;padding:9px 12px;background:var(--green);color:white;cursor:pointer}
+button.secondary{background:#e8eee9;color:var(--green)}button.gold{background:var(--gold);color:#1d1d1d}
+main{max-width:900px;margin:14px auto;padding:0 10px}
+.panel{background:white;border-radius:12px;padding:12px;margin-bottom:12px;box-shadow:0 2px 8px #0000000b}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.row>*{flex:1;min-width:110px}
+input,select{width:100%;padding:9px;border:1px solid #ccd5cf;border-radius:8px;background:white}
+label{font-size:13px;color:#52615a;display:block;margin-bottom:4px}
+#editor{background:var(--paper);border:1px solid #d7d0c1;min-height:65vh;padding:28px 24px;line-height:1.9;font-size:18px;outline:none;white-space:pre-wrap;overflow-wrap:anywhere}
+#editor:empty:before{content:"یہاں اپنی کتاب لکھنا شروع کریں…";color:#aaa}
+.status{font-size:12px;color:#68766f;margin-top:8px}
+#chapterList{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chapter{background:#edf2ee;color:#173b35;border:1px solid #d3ded6}
+dialog{border:0;border-radius:14px;max-width:90%;width:420px;padding:18px;box-shadow:0 10px 40px #0004}
+dialog::backdrop{background:#0006}
+@media print{
+ @page{size:5.5in 8.5in;margin:0.7in}
+ body{background:white}.no-print,header,.toolbar,.panel:not(.print-settings){display:none!important}
+ main{margin:0;padding:0;max-width:none}.print-settings{display:none!important}
+ #editor{border:0;min-height:0;padding:0;background:white;font-size:14pt;line-height:1.8}
+}
+</style>
+</head>
+<body>
+<header class="no-print"><h1>اردو کتاب ساز</h1><small>URDU BOOK STUDIO · موبائل کتاب نویسی</small></header>
+<div class="toolbar no-print">
+<button onclick="newBook()">نئی کتاب</button>
+<button class="secondary" onclick="saveBook()">محفوظ کریں</button>
+<button class="secondary" onclick="document.getElementById('fileInput').click()">فائل کھولیں</button>
+<button class="gold" onclick="exportPDF()">PDF بنائیں / پرنٹ</button>
+<button class="secondary" onclick="downloadText()">متن ڈاؤن لوڈ</button>
+<input id="fileInput" type="file" accept=".json,.txt,.html" hidden onchange="openFile(event)">
+</div>
+<main>
+<section class="panel no-print">
+<div class="row">
+<div><label>کتاب کا عنوان</label><input id="bookTitle" value="میری اردو کتاب" oninput="scheduleSave()"></div>
+<div><label>مصنف</label><input id="author" placeholder="مصنف کا نام" oninput="scheduleSave()"></div>
+</div>
+<div class="row" style="margin-top:10px">
+<div><label>فونٹ سائز</label><select id="fontSize" onchange="formatSize()"><option>14</option><option>16</option><option selected>18</option><option>20</option><option>22</option><option>24</option></select></div>
+<div><label>لائنوں کا فاصلہ</label><select id="lineHeight" onchange="formatLine()"><option value="1.5">1.5</option><option value="1.8" selected>1.8</option><option value="2">2</option><option value="2.2">2.2</option></select></div>
+<div><label>متن کی سمت</label><select onchange="document.getElementById('editor').dir=this.value"><option value="rtl">دائیں سے بائیں</option><option value="ltr">بائیں سے دائیں</option></select></div>
+</div>
+<div class="row" style="margin-top:10px">
+<button class="secondary" onclick="document.execCommand('bold')">موٹا متن</button>
+<button class="secondary" onclick="document.execCommand('justifyRight')">دائیں سیدھ</button>
+<button class="secondary" onclick="insertHeading()">سرخی شامل کریں</button>
+<button class="secondary" onclick="insertPageBreak()">نیا صفحہ</button>
+</div>
+<div style="margin-top:10px"><label>ابواب</label><div class="row"><input id="chapterName" placeholder="باب کا نام"><button onclick="addChapter()">باب شامل کریں</button></div><div id="chapterList"></div></div>
+<div class="status" id="status">خودکار محفوظ کاری فعال ہے۔</div>
+</section>
+<section class="panel print-settings"><div id="editor" contenteditable="true" dir="rtl" spellcheck="true" oninput="scheduleSave()"></div></section>
+<section class="panel no-print">
+<strong>استعمال</strong>
+<p style="font-size:13px;line-height:1.8;margin-bottom:0">آپ کا متن اسی فون میں محفوظ ہوتا ہے۔ PDF کے لیے اوپر “PDF بنائیں / پرنٹ” دبائیں، پرنٹر کے انتخاب میں “Save as PDF” منتخب کریں۔ کتاب کا صفحہ سائز 5.5 × 8.5 انچ رکھا گیا ہے۔</p>
+</section>
+</main>
+<dialog id="confirmDialog"><p id="dialogText"></p><div class="row"><button onclick="confirmDialog.close()">ٹھیک ہے</button></div></dialog>
+<script>
+const editor=document.getElementById('editor');let saveTimer;
+function msg(t){document.getElementById('status').textContent=t}
+function snapshot(){return {title:bookTitle.value,author:author.value,html:editor.innerHTML,chapters:[...document.querySelectorAll('.chapter')].map(x=>x.textContent)}}
+function saveBook(){localStorage.setItem('ubs-book',JSON.stringify(snapshot()));msg('کتاب محفوظ ہوگئی۔')}
+function scheduleSave(){clearTimeout(saveTimer);msg('محفوظ کیا جا رہا ہے…');saveTimer=setTimeout(saveBook,600)}
+function newBook(){if(!confirm('نئی کتاب شروع کریں؟ موجودہ متن پہلے محفوظ کرلیں۔'))return;editor.innerHTML='';bookTitle.value='میری اردو کتاب';author.value='';document.getElementById('chapterList').innerHTML='';saveBook()}
+function restore(d){bookTitle.value=d.title||'میری اردو کتاب';author.value=d.author||'';editor.innerHTML=d.html||'';document.getElementById('chapterList').innerHTML='';(d.chapters||[]).forEach(addChapterItem);msg('کتاب لوڈ ہوگئی۔')}
+function openFile(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{if(f.name.endsWith('.json'))restore(JSON.parse(r.result));else editor.textContent=r.result;saveBook()}catch(_){alert('یہ فائل نہیں کھل سکی۔')}};r.readAsText(f);e.target.value=''}
+function downloadText(){const blob=new Blob([bookTitle.value+'\\n'+author.value+'\\n\\n'+editor.innerText],{type:'text/plain;charset=utf-8'});downloadBlob(blob,(bookTitle.value||'urdu-book')+'.txt')}
+function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)}
+function exportPDF(){saveBook();window.print()}
+function formatSize(){editor.style.fontSize=document.getElementById('fontSize').value+'px'}
+function formatLine(){editor.style.lineHeight=document.getElementById('lineHeight').value}
+function insertHeading(){document.execCommand('insertHTML',false,'<h2 style="text-align:center">نئی سرخی</h2><p><br></p>');scheduleSave()}
+function insertPageBreak(){document.execCommand('insertHTML',false,'<div style="break-before:page;page-break-before:always;border-top:1px dashed #aaa;margin:24px 0;padding-top:12px" contenteditable="false">— نیا صفحہ —</div><p><br></p>');scheduleSave()}
+function addChapter(){const n=document.getElementById('chapterName');if(!n.value.trim())return;addChapterItem(n.value.trim());n.value='';scheduleSave()}
+function addChapterItem(name){const b=document.createElement('button');b.className='chapter';b.textContent=name;b.onclick=()=>{document.execCommand('insertHTML',false,'<h2>'+escapeHtml(name)+'</h2><p><br></p>');scheduleSave()};document.getElementById('chapterList').appendChild(b)}
+function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+window.addEventListener('beforeunload',saveBook);
+try{const d=localStorage.getItem('ubs-book');if(d)restore(JSON.parse(d))}catch(e){}
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script>
+</body></html>
